@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}{{ title }} - ClubHub{% endblock %}
+{% block content %}
+<a href="{% url 'ai:hub' %}" class="btn btn-link px-0 mb-2">← Trợ lý AI</a>
+<div class="row justify-content-center">
+  <div class="col-lg-7 bg-white p-4 rounded shadow-sm">
+    <h3><i class="bi bi-stars text-primary"></i> {{ title }}</h3>
+    <p class="text-muted">{{ intro }}</p>
+    {% include "ai_support/_disabled.html" %}
+    <form method="post" onsubmit="const b=this.querySelector('button');b.disabled=true;b.innerText='AI đang xử lý...';">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <button class="btn btn-primary" {% if not ai_enabled %}disabled{% endif %}><i class="bi bi-stars"></i> {{ button }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

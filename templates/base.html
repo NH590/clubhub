@@ -40,6 +40,16 @@
           <a class="nav-link {% if ns == 'tasks' %}active fw-semibold{% endif %}"
              href="{% url 'tasks:board' %}"><i class="bi bi-kanban"></i> Công việc</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if ns == 'comms' %}active fw-semibold{% endif %}"
+             href="{% url 'comms:announcements' %}"><i class="bi bi-megaphone"></i> Truyền thông</a>
+        </li>
+        {% if user.is_superuser or user.role in "admin board head" %}
+        <li class="nav-item">
+          <a class="nav-link {% if ns == 'ai' %}active fw-semibold{% endif %}"
+             href="{% url 'ai:hub' %}"><i class="bi bi-stars"></i> Trợ lý AI</a>
+        </li>
+        {% endif %}
         {% if user.is_superuser %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Quản trị</a>

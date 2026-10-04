@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Đề xuất phân công - ClubHub{% endblock %}
+{% block content %}
+<a href="{% url 'ai:hub' %}" class="btn btn-link px-0 mb-2">← Trợ lý AI</a>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="bg-white p-4 rounded shadow-sm">
+      <h4><i class="bi bi-person-check text-warning"></i> Đề xuất phân công</h4>
+      <p class="text-muted small">Nhập công việc cần giao. Hệ thống lấy dữ liệu thật (ban, vai trò, số việc đang làm) rồi AI đề xuất người phù hợp.</p>
+      {% include "ai_support/_disabled.html" %}
+      <form method="post" onsubmit="const b=this.querySelector('button');b.disabled=true;b.innerText='AI đang phân tích...';">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button class="btn btn-primary" {% if not ai_enabled %}disabled{% endif %}><i class="bi bi-stars"></i> Đề xuất</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    {% if result %}
+    <div class="bg-white p-4 rounded shadow-sm border-start border-4 border-primary mb-3">
+      <h5><i class="bi bi-stars text-primary"></i> Gợi ý của AI</h5>
+      {{ result|linebreaks }}
+      <a href="{% url 'tasks:create' %}" class="btn btn-sm btn-success">+ Tạo công việc và giao</a>
+    </div>
+    {% endif %}
+    {% if candidates %}
+    <div class="bg-white p-3 rounded shadow-sm">
+      <h6>Dữ liệu dùng để đề xuất</h6>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="table-light"><tr><th>Thành viên</th><th>Vai trò</th><th>Ban</th><th class="text-center">Đang làm</th><th class="text-center">Đã xong</th></tr></thead>
+          <tbody>
+          {% for c in candidates %}
+            <tr {% if c.same_department %}class="table-info"{% endif %}>
+              <td>{{ c.name }}</td><td class="small">{{ c.role }}</td><td class="small">{{ c.departments|default:"-" }}</td>
+              <td class="text-center">{{ c.open_tasks }}</td><td class="text-center">{{ c.done_tasks }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

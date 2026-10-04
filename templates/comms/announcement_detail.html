@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} - ClubHub{% endblock %}
+{% block content %}
+<a href="{% url 'comms:announcements' %}" class="btn btn-link px-0 mb-2">← Danh sách thông báo</a>
+<div class="bg-white p-4 rounded shadow-sm">
+  <div class="d-flex justify-content-between align-items-start">
+    <h2>{% if item.pinned %}<i class="bi bi-pin-angle-fill text-danger"></i> {% endif %}{{ item.title }}</h2>
+    {% if can_manage %}
+    <div class="text-nowrap">
+      <a href="{% url 'comms:announcement_update' item.pk %}" class="btn btn-sm btn-outline-warning">Sửa</a>
+      <a href="{% url 'comms:announcement_delete' item.pk %}" class="btn btn-sm btn-outline-danger">Xóa</a>
+    </div>
+    {% endif %}
+  </div>
+  <p class="text-muted small">
+    {{ item.created_by|default:"" }} · {{ item.created_at|date:"H:i d/m/Y" }} ·
+    {% if item.department %}Gửi ban {{ item.department }}{% else %}Gửi toàn CLB{% endif %}
+    {% if item.ai_generated %} · <span class="text-primary"><i class="bi bi-stars"></i> Nháp do AI hỗ trợ</span>{% endif %}
+  </p>
+  {% if item.event %}
+    <p><a href="{% url 'events:detail' item.event.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar-event"></i> Xem sự kiện: {{ item.event }}</a></p>
+  {% endif %}
+  <hr>
+  {{ item.content|linebreaks }}
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Thông báo - ClubHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Truyền thông</h2>
+  {% if can_manage %}
+  <div>
+    {% if ai_enabled %}<a class="btn btn-outline-primary btn-sm" href="{% url 'ai:draft' %}"><i class="bi bi-stars"></i> AI viết nháp</a>{% endif %}
+    <a class="btn btn-primary btn-sm" href="{% url 'comms:announcement_create' %}">+ Đăng thông báo</a>
+  </div>
+  {% endif %}
+</div>
+{% include "comms/_tabs.html" with tab="ann" %}
+
+{% for a in items %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <h5 class="card-title mb-1">
+          {% if a.pinned %}<i class="bi bi-pin-angle-fill text-danger"></i>{% endif %}
+          <a href="{% url 'comms:announcement_detail' a.pk %}" class="text-decoration-none">{{ a.title }}</a>
+        </h5>
+        <div>
+          {% if a.department %}<span class="badge bg-info text-dark">{{ a.department }}</span>{% else %}<span class="badge bg-secondary">Toàn CLB</span>{% endif %}
+          {% if a.ai_generated %}<span class="badge bg-light text-primary border"><i class="bi bi-stars"></i> AI hỗ trợ</span>{% endif %}
+        </div>
+      </div>
+      <p class="small text-muted mb-2">{{ a.created_by|default:"" }} · {{ a.created_at|date:"H:i d/m/Y" }}{% if a.event %} · <i class="bi bi-calendar-event"></i> {{ a.event }}{% endif %}</p>
+      <p class="mb-0">{{ a.content|truncatechars:220 }}</p>
+    </div>
+  </div>
+{% empty %}
+  <p class="text-muted">Chưa có thông báo nào.</p>
+{% endfor %}
+{% endblock %}

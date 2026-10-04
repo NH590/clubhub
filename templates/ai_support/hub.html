@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Trợ lý AI - ClubHub{% endblock %}
+{% block content %}
+<h2 class="mb-1"><i class="bi bi-stars text-primary"></i> Trợ lý AI</h2>
+<p class="text-muted">AI chỉ hỗ trợ đề xuất. Ban điều hành luôn là người xem lại và quyết định cuối cùng.</p>
+{% include "ai_support/_disabled.html" %}
+<div class="row g-3">
+  <div class="col-md-6 col-lg-3"><a href="{% url 'ai:draft' %}" class="card h-100 border-0 shadow-sm text-decoration-none text-body"><div class="card-body">
+    <i class="bi bi-megaphone fs-2 text-primary"></i><h5 class="mt-2">Viết nháp thông báo</h5>
+    <p class="small text-muted mb-0">Từ thông tin sự kiện và vài ý chính, AI viết bản nháp để bạn chỉnh sửa rồi đăng.</p></div></a></div>
+  <div class="col-md-6 col-lg-3"><a href="{% url 'comms:minutes' %}" class="card h-100 border-0 shadow-sm text-decoration-none text-body"><div class="card-body">
+    <i class="bi bi-journal-text fs-2 text-success"></i><h5 class="mt-2">Tóm tắt biên bản</h5>
+    <p class="small text-muted mb-0">Mở một biên bản họp và bấm "Tóm tắt bằng AI" để có nội dung chính, quyết định, việc cần làm.</p></div></a></div>
+  <div class="col-md-6 col-lg-3"><a href="{% url 'ai:suggest' %}" class="card h-100 border-0 shadow-sm text-decoration-none text-body"><div class="card-body">
+    <i class="bi bi-person-check fs-2 text-warning"></i><h5 class="mt-2">Đề xuất phân công</h5>
+    <p class="small text-muted mb-0">Dựa trên ban, vai trò và số việc đang làm của từng người để gợi ý người phù hợp.</p></div></a></div>
+  <div class="col-md-6 col-lg-3"><a href="{% url 'ai:engagement' %}" class="card h-100 border-0 shadow-sm text-decoration-none text-body"><div class="card-body">
+    <i class="bi bi-activity fs-2 text-danger"></i><h5 class="mt-2">Thành viên ít tương tác</h5>
+    <p class="small text-muted mb-0">Tính điểm tương tác từ dữ liệu thật, AI gợi ý cách kết nối lại từng người.</p></div></a></div>
+</div>
+{% endblock %}

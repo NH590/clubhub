@@ -6,11 +6,13 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),  # login, logout, doi mat khau
+    path("accounts/", include("django.contrib.auth.urls")),
     path("members/", include("members.urls")),
     path("events/", include("events.urls")),
     path("finance/", include("finance.urls")),
     path("tasks/", include("tasks.urls")),
+    path("comms/", include("comms.urls")),
+    path("ai/", include("ai_support.urls")),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
 ]
 
