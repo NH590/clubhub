@@ -9,6 +9,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),  # login, logout, doi mat khau
     path("members/", include("members.urls")),
     path("events/", include("events.urls")),
+    path("finance/", include("finance.urls")),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
 ]
 

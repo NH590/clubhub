@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load money %}
+{% block title %}Quỹ CLB - ClubHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Quỹ CLB</h2>
+  {% if can_propose %}
+    <a class="btn btn-primary btn-sm" href="{% url 'finance:create' %}">+ Thêm khoản thu / chi</a>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body">
+    <div class="text-muted small"><i class="bi bi-arrow-down-circle"></i> Tổng thu</div>
+    <div class="fs-4 fw-bold text-success">{{ income_total|vnd }} đ</div>
+  </div></div></div>
+  <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body">
+    <div class="text-muted small"><i class="bi bi-arrow-up-circle"></i> Tổng chi</div>
+    <div class="fs-4 fw-bold text-danger">{{ expense_total|vnd }} đ</div>
+  </div></div></div>
+  <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body">
+    <div class="text-muted small"><i class="bi bi-wallet2"></i> Số dư hiện tại</div>
+    <div class="fs-4 fw-bold {% if balance < 0 %}text-danger{% else %}text-primary{% endif %}">{{ balance|vnd }} đ</div>
+  </div></div></div>
+</div>
+
+{% if can_manage and pending_count %}
+  <div class="alert alert-warning">Có <b>{{ pending_count }}</b> khoản đang chờ duyệt.
+    <a href="?status=pending" class="alert-link">Xem ngay</a></div>
+{% endif %}
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-3">
+    <select name="type" class="form-select">
+      <option value="">Tất cả loại</option>
+      <option value="income" {% if f_type == "income" %}selected{% endif %}>Thu</option>
+      <option value="expense" {% if f_type == "expense" %}selected{% endif %}>Chi</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select name="status" class="form-select">
+      <option value="">Tất cả trạng thái</option>
+      <option value="pending" {% if f_status == "pending" %}selected{% endif %}>Chờ duyệt</option>
+      <option value="approved" {% if f_status == "approved" %}selected{% endif %}>Đã duyệt</option>
+      <option value="rejected" {% if f_status == "rejected" %}selected{% endif %}>Từ chối</option>
+    </select>
+  </div>
+  <div class="col-md-3"><input type="month" name="month" value="{{ f_month }}" class="form-control"></div>
+  <div class="col-md-3"><button class="btn btn-primary w-100">Lọc</button></div>
+</form>
+
+<div class="table-responsive bg-white rounded shadow-sm mb-4">
+  <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light">
+      <tr><th>Ngày</th><th>Nội dung</th><th>Danh mục</th><th class="text-end">Số tiền</th>
+          <th>Trạng thái</th><th>Người tạo</th><th class="text-end">Thao tác</th></tr>
+    </thead>
+    <tbody>
+    {% for t in items %}
+      <tr>
+        <td>{{ t.date|date:"d/m/Y" }}</td>
+        <td>{{ t.description }}
+          {% if t.event %}<div class="small text-muted"><i class="bi bi-calendar-event"></i> {{ t.event }}</div>{% endif %}
+          {% if t.receipt %}<a href="{{ t.receipt.url }}" target="_blank" class="small">Xem chứng từ</a>{% endif %}
+        </td>
+        <td>{{ t.category|default:"-" }}</td>
+        <td class="text-end fw-semibold {% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+          {% if t.type == 'income' %}+{% else %}-{% endif %}{{ t.amount|vnd }}
+        </td>
+        <td>
+          {% if t.status == "approved" %}<span class="badge bg-success">Đã duyệt</span>
+          {% elif t.status == "pending" %}<span class="badge bg-warning text-dark">Chờ duyệt</span>
+          {% else %}<span class="badge bg-secondary">Từ chối</span>{% endif %}
+        </td>
+        <td class="small">{{ t.created_by|default:"-" }}</td>
+        <td class="text-end text-nowrap">
+          {% if can_manage %}
+            {% if t.status == "pending" %}
+              <form method="post" action="{% url 'finance:approve' t.pk %}" class="d-inline">{% csrf_token %}
+                <button class="btn btn-sm btn-success">Duyệt</button></form>
+              <form method="post" action="{% url 'finance:reject' t.pk %}" class="d-inline">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-secondary">Từ chối</button></form>
+            {% endif %}
+            <a href="{% url 'finance:update' t.pk %}" class="btn btn-sm btn-outline-warning">Sửa</a>
+            <a href="{% url 'finance:delete' t.pk %}" class="btn btn-sm btn-outline-danger">Xóa</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="text-center text-muted py-4">Chưa có khoản thu chi nào.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h5>Thống kê theo tháng <small class="text-muted fs-6">(chỉ tính khoản đã duyệt)</small></h5>
+<div class="table-responsive bg-white rounded shadow-sm">
+  <table class="table mb-0 align-middle">
+    <thead class="table-light"><tr><th>Tháng</th><th class="text-end">Thu</th><th class="text-end">Chi</th><th class="text-end">Chênh lệch</th></tr></thead>
+    <tbody>
+    {% for r in monthly %}
+      <tr>
+        <td>{{ r.month|date:"m/Y" }}</td>
+        <td class="text-end text-success">{{ r.income|vnd }}</td>
+        <td class="text-end text-danger">{{ r.expense|vnd }}</td>
+        <td class="text-end fw-semibold">{{ r.net|vnd }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4" class="text-center text-muted py-3">Chưa có dữ liệu.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

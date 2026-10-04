@@ -32,6 +32,10 @@
           <a class="nav-link {% if ns == 'events' %}active fw-semibold{% endif %}"
              href="{% url 'events:list' %}"><i class="bi bi-calendar-event"></i> Sự kiện</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if ns == 'finance' %}active fw-semibold{% endif %}"
+             href="{% url 'finance:list' %}"><i class="bi bi-cash-coin"></i> Quỹ</a>
+        </li>
         {% if user.is_superuser %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Quản trị</a>
