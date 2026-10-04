@@ -18,6 +18,18 @@ CSRF_TRUSTED_ORIGINS = [
     o for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o
 ]
 
+# --- Chay tren Render ---
+RENDER_HOST = os.getenv("RENDER_EXTERNAL_HOSTNAME")  # Render tu cap bien nay
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOST}")
+
+# Render dung HTTPS qua proxy -> de Django biet la https (QR se tao link https)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
