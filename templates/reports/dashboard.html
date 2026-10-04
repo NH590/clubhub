@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load money %}
+{% block title %}Tổng quan - ClubHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h2 class="mb-0">Xin chào, {{ user }} 👋</h2>
+    <p class="text-muted mb-0">Tổng quan hoạt động câu lạc bộ</p>
+  </div>
+  {% if can_manage %}
+    <a href="{% url 'reports:export' %}" class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Xuất báo cáo Excel</a>
+  {% endif %}
+</div>
+
+<!-- Thẻ số liệu -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><a href="{% url 'members:list' %}" class="card border-0 shadow-sm h-100 text-decoration-none"><div class="card-body">
+    <div class="text-muted small"><i class="bi bi-people"></i> Thành viên</div>
+    <div class="fs-3 fw-bold text-body">{{ stats.members }}</div>
+    <div class="small text-muted">{{ stats.departments }} ban</div></div></a></div>
+  <div class="col-6 col-lg-3"><a href="{% url 'events:list' %}" class="card border-0 shadow-sm h-100 text-decoration-none"><div class="card-body">
+    <div class="text-muted small"><i class="bi bi-calendar-event"></i> Sự kiện sắp tới</div>
+    <div class="fs-3 fw-bold text-primary">{{ stats.upcoming_events }}</div>
+    <div class="small text-muted">đang mở / sắp diễn ra</div></div></a></div>
+  <div class="col-6 col-lg-3"><a href="{% url 'finance:list' %}" class="card border-0 shadow-sm h-100 text-decoration-none"><div class="card-body">
+    <div class="text-muted small"><i class="bi bi-wallet2"></i> Số dư quỹ</div>
+    <div class="fs-3 fw-bold {% if stats.balance < 0 %}text-danger{% else %}text-success{% endif %}">{{ stats.balance|vnd }} đ</div>
+    <div class="small text-muted">chỉ tính khoản đã duyệt</div></div></a></div>
+  <div class="col-6 col-lg-3"><a href="{% url 'tasks:board' %}" class="card border-0 shadow-sm h-100 text-decoration-none"><div class="card-body">
+    <div class="text-muted small"><i class="bi bi-kanban"></i> Công việc chưa xong</div>
+    <div class="fs-3 fw-bold text-warning">{{ stats.open_tasks }}</div>
+    <div class="small {% if stats.overdue_tasks %}text-danger fw-semibold{% else %}text-muted{% endif %}">{{ stats.overdue_tasks }} việc quá hạn</div></div></a></div>
+</div>
+
+<!-- Biểu đồ -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-6"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <h6 class="card-title">Thu chi 6 tháng gần nhất</h6>
+    <div style="height:260px"><canvas id="financeChart"></canvas></div>
+  </div></div></div>
+  <div class="col-lg-6"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <h6 class="card-title">Đăng ký và điểm danh các sự kiện gần đây</h6>
+    <div style="height:260px">
+      {% if event_chart.labels %}<canvas id="eventChart"></canvas>{% else %}<p class="text-muted small">Chưa có sự kiện đã diễn ra.</p>{% endif %}
+    </div>
+  </div></div></div>
+</div>
+
+<div class="row g-3">
+  <!-- Sự kiện sắp tới -->
+  <div class="col-lg-5"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="d-flex justify-content-between"><h6>Sự kiện sắp tới</h6><a href="{% url 'events:list' %}" class="small">Xem tất cả</a></div>
+    <ul class="list-group list-group-flush">
+    {% for e in upcoming %}
+      <li class="list-group-item px-0">
+        <a href="{% url 'events:detail' e.pk %}" class="fw-semibold text-decoration-none">{{ e.title }}</a>
+        {% if e.id in my_event_ids %}<span class="badge bg-info text-dark ms-1">Đã đăng ký</span>{% endif %}
+        <div class="small text-muted"><i class="bi bi-clock"></i> {{ e.start_time|date:"H:i d/m/Y" }} · <i class="bi bi-geo-alt"></i> {{ e.location }} · {{ e.n_registered }}{% if e.capacity %}/{{ e.capacity }}{% endif %} người</div>
+      </li>
+    {% empty %}
+      <li class="list-group-item px-0 text-muted small">Chưa có sự kiện sắp tới.</li>
+    {% endfor %}
+    </ul>
+  </div></div></div>
+
+  <!-- Việc của tôi + trạng thái -->
+  <div class="col-lg-4"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="d-flex justify-content-between"><h6>Việc của tôi</h6><a href="{% url 'tasks:board' %}?mine=1" class="small">Xem bảng</a></div>
+    <ul class="list-group list-group-flush mb-3">
+    {% for t in my_tasks %}
+      <li class="list-group-item px-0 d-flex justify-content-between align-items-start">
+        <div><span class="fw-semibold">{{ t.title }}</span>
+          {% if t.due_date %}<div class="small {% if t.is_overdue %}text-danger{% else %}text-muted{% endif %}"><i class="bi bi-alarm"></i> {{ t.due_date|date:"d/m/Y" }}{% if t.is_overdue %} (quá hạn){% endif %}</div>{% endif %}
+        </div>
+        <span class="badge {% if t.status == 'doing' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ t.get_status_display }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item px-0 text-muted small">Bạn không có việc nào đang chờ 🎉</li>
+    {% endfor %}
+    </ul>
+    <h6 class="small text-muted">Trạng thái toàn bộ công việc</h6>
+    <div style="height:160px"><canvas id="taskChart"></canvas></div>
+  </div></div></div>
+
+  <!-- Thông báo mới -->
+  <div class="col-lg-3"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="d-flex justify-content-between"><h6>Thông báo mới</h6><a href="{% url 'comms:announcements' %}" class="small">Tất cả</a></div>
+    {% for a in announcements %}
+      <div class="mb-3">
+        <a href="{% url 'comms:announcement_detail' a.pk %}" class="fw-semibold text-decoration-none">{% if a.pinned %}<i class="bi bi-pin-angle-fill text-danger"></i> {% endif %}{{ a.title }}</a>
+        <div class="small text-muted">{{ a.created_at|date:"d/m/Y" }}</div>
+        <div class="small">{{ a.content|truncatechars:80 }}</div>
+      </div>
+    {% empty %}
+      <p class="text-muted small">Chưa có thông báo.</p>
+    {% endfor %}
+  </div></div></div>
+</div>
+
+{{ finance_chart|json_script:"finance-data" }}
+{{ event_chart|json_script:"event-data" }}
+{{ task_chart|json_script:"task-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const fin = JSON.parse(document.getElementById("finance-data").textContent);
+  const ev = JSON.parse(document.getElementById("event-data").textContent);
+  const tk = JSON.parse(document.getElementById("task-data").textContent);
+  const vnd = v => v.toLocaleString("vi-VN");
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+
+  new Chart(document.getElementById("financeChart"), {
+    type: "bar",
+    data: { labels: fin.labels, datasets: [
+      { label: "Thu", data: fin.income, backgroundColor: "#198754" },
+      { label: "Chi", data: fin.expense, backgroundColor: "#dc3545" } ] },
+    options: { maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, ticks: { callback: vnd } } },
+      plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${vnd(c.raw)} đ` } } } }
+  });
+
+  if (document.getElementById("eventChart")) {
+    new Chart(document.getElementById("eventChart"), {
+      type: "bar",
+      data: { labels: ev.labels, datasets: [
+        { label: "Đăng ký", data: ev.registered, backgroundColor: "#9ec5fe" },
+        { label: "Điểm danh", data: ev.attended, backgroundColor: "#0d6efd" } ] },
+      options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+  }
+
+  new Chart(document.getElementById("taskChart"), {
+    type: "doughnut",
+    data: { labels: tk.labels, datasets: [{ data: tk.data, backgroundColor: ["#adb5bd", "#ffc107", "#198754"] }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: "right" } } }
+  });
+</script>
+{% endblock %}

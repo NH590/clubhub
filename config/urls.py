@@ -2,7 +2,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
+
+from reports.views import dashboard
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -13,7 +14,8 @@ urlpatterns = [
     path("tasks/", include("tasks.urls")),
     path("comms/", include("comms.urls")),
     path("ai/", include("ai_support.urls")),
-    path("", TemplateView.as_view(template_name="home.html"), name="home"),
+    path("reports/", include("reports.urls")),
+    path("", dashboard, name="home"),  # Trang chủ = Dashboard
 ]
 
 if settings.DEBUG:
