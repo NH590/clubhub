@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Thành viên - ClubHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Thành viên</h2>
+  <a class="btn btn-outline-primary btn-sm" href="{% url 'members:departments' %}">Danh sách ban</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-5">
+    <input type="text" name="q" value="{{ q }}" class="form-control"
+           placeholder="Tìm theo tên, tài khoản hoặc MSSV">
+  </div>
+  <div class="col-md-4">
+    <select name="department" class="form-select">
+      <option value="">Tất cả ban</option>
+      {% for d in departments %}
+        <option value="{{ d.id }}" {% if dept_id == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <button class="btn btn-primary w-100">Lọc</button>
+  </div>
+</form>
+
+<div class="table-responsive bg-white rounded shadow-sm">
+  <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Họ tên</th><th>MSSV</th><th>Khoa</th><th>Ban</th><th>Chức vụ</th><th>Tham gia</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in memberships %}
+      <tr>
+        <td>{{ m.user }}</td>
+        <td>{{ m.user.mssv }}</td>
+        <td>{{ m.user.faculty }}</td>
+        <td>{{ m.department }}</td>
+        <td>{{ m.get_position_display }}</td>
+        <td>{{ m.joined_at|date:"d/m/Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-muted py-4">Chưa có thành viên nào.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

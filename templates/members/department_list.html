@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Các ban - ClubHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Các ban</h2>
+  <a class="btn btn-outline-primary btn-sm" href="{% url 'members:list' %}">Danh sách thành viên</a>
+</div>
+
+<div class="row g-3">
+  {% for d in departments %}
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">{{ d.name }}</h5>
+        <p class="card-text text-muted">{{ d.description|default:"Chưa có mô tả." }}</p>
+        <p class="mb-1"><b>Trưởng ban:</b> {{ d.head|default:"Chưa có" }}</p>
+        <p class="mb-0"><b>Số thành viên:</b> {{ d.total }}</p>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">Chưa có ban nào. Hãy tạo trong trang admin.</p>
+  {% endfor %}
+</div>
+{% endblock %}
