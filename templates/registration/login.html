@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Đăng nhập{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5 bg-white p-4 rounded shadow-sm">
+    <h3 class="mb-3">Đăng nhập</h3>
+    {% if form.errors %}<div class="alert alert-danger">Sai tài khoản hoặc mật khẩu.</div>{% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3"><label class="form-label">Tên đăng nhập</label>
+        <input name="username" class="form-control" required autofocus></div>
+      <div class="mb-3"><label class="form-label">Mật khẩu</label>
+        <input type="password" name="password" class="form-control" required></div>
+      <button class="btn btn-primary w-100">Đăng nhập</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

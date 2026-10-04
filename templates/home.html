@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-5 bg-white rounded shadow-sm">
+  <h1>ClubHub</h1>
+  <p class="lead">Ứng dụng quản lý câu lạc bộ sinh viên có AI hỗ trợ vận hành.</p>
+  {% if user.is_authenticated %}
+    <p>Xin chào <b>{{ user }}</b>! Môi trường đã chạy thành công.</p>
+  {% else %}
+    <a class="btn btn-primary" href="{% url 'login' %}">Đăng nhập</a>
+  {% endif %}
+</div>
+{% endblock %}
