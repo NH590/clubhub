@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Điểm danh - ClubHub{% endblock %}
+{% block content %}
+<div class="text-center bg-white p-5 rounded shadow-sm mx-auto" style="max-width:480px">
+  {% if ok %}
+    <i class="bi bi-check-circle-fill text-success" style="font-size:4rem"></i>
+    <h3 class="mt-3">{% if already %}Bạn đã điểm danh rồi{% else %}Điểm danh thành công!{% endif %}</h3>
+    <p class="mb-1"><b>{{ event.title }}</b></p>
+    <p class="text-muted">Lúc {{ registration.checked_in_at|date:"H:i d/m/Y" }}</p>
+  {% else %}
+    <i class="bi bi-x-circle-fill text-danger" style="font-size:4rem"></i>
+    <h3 class="mt-3">Không thể điểm danh</h3>
+    <p class="text-muted">{{ error }}</p>
+  {% endif %}
+  <a href="{% url 'events:detail' event.pk %}" class="btn btn-primary mt-2">Xem sự kiện</a>
+</div>
+{% endblock %}

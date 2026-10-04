@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}QR điểm danh - {{ event.title }}{% endblock %}
+{% block content %}
+<div class="text-center bg-white p-4 rounded shadow-sm mx-auto" style="max-width:560px">
+  <h3>{{ event.title }}</h3>
+  <p class="text-muted">Quét mã bằng điện thoại để điểm danh</p>
+  {% if not event.checkin_open %}
+    <div class="alert alert-warning">Đang ngoài giờ điểm danh (mở trước giờ bắt đầu 30 phút đến khi kết thúc).</div>
+  {% endif %}
+  <img src="{% url 'events:qr_image' event.pk %}?v={{ event.checkin_token }}" alt="Mã QR"
+       class="img-fluid border rounded" style="max-width:380px">
+  <p class="display-6 mt-3 mb-0">{{ event.checked_in_count }} / {{ event.registered_count }}</p>
+  <p class="text-muted">đã điểm danh</p>
+
+  <div class="d-flex justify-content-center gap-2">
+    <form method="post" action="{% url 'events:qr_regenerate' event.pk %}">
+      {% csrf_token %}<button class="btn btn-outline-danger btn-sm">Đổi mã QR</button>
+    </form>
+    <a href="{% url 'events:detail' event.pk %}" class="btn btn-outline-secondary btn-sm">Về trang sự kiện</a>
+  </div>
+</div>
+<script>setTimeout(() => location.reload(), 15000);</script>
+{% endblock %}

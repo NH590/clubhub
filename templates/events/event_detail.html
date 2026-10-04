@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% extends "base.html" %}
+{% block title %}{{ event.title }} - ClubHub{% endblock %}
+{% block content %}
+<a href="{% url 'events:list' %}" class="btn btn-link px-0 mb-2">← Danh sách sự kiện</a>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="bg-white p-4 rounded shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-start">
+        <h2>{{ event.title }}</h2>
+        {% if event.status == "ongoing" %}<span class="badge bg-success">Đang diễn ra</span>
+        {% elif event.status == "upcoming" %}<span class="badge bg-primary">Sắp diễn ra</span>
+        {% else %}<span class="badge bg-secondary">Đã kết thúc</span>{% endif %}
+      </div>
+      <p class="text-muted mb-1"><i class="bi bi-clock"></i> {{ event.start_time|date:"H:i d/m/Y" }} – {{ event.end_time|date:"H:i d/m/Y" }}</p>
+      <p class="text-muted mb-1"><i class="bi bi-geo-alt"></i> {{ event.location }}</p>
+      {% if event.department %}<p class="text-muted mb-1"><i class="bi bi-diagram-3"></i> Ban phụ trách: {{ event.department }}</p>{% endif %}
+      <p class="text-muted"><i class="bi bi-people"></i> {{ event.registered_count }}{% if event.capacity %}/{{ event.capacity }}{% endif %} người đăng ký</p>
+      <hr>
+      {{ event.description|linebreaks }}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="bg-white p-4 rounded shadow-sm mb-3">
+      <h5>Tham gia</h5>
+      {% if my_registration %}
+        {% if my_registration.checked_in_at %}
+          <div class="alert alert-success mb-0">Đã điểm danh lúc {{ my_registration.checked_in_at|date:"H:i d/m/Y" }}</div>
+        {% else %}
+          <p class="text-success">Bạn đã đăng ký sự kiện này.</p>
+          {% if event.status != "past" %}
+          <form method="post" action="{% url 'events:cancel' event.pk %}">
+            {% csrf_token %}<button class="btn btn-outline-danger w-100">Hủy đăng ký</button>
+          </form>
+          {% endif %}
+        {% endif %}
+      {% elif event.status == "past" %}
+        <p class="text-muted mb-0">Sự kiện đã kết thúc.</p>
+      {% elif event.is_full %}
+        <p class="text-danger mb-0">Sự kiện đã đủ số lượng.</p>
+      {% else %}
+        <form method="post" action="{% url 'events:register' event.pk %}">
+          {% csrf_token %}<button class="btn btn-primary w-100">Đăng ký tham gia</button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if can_manage %}
+    <div class="bg-white p-4 rounded shadow-sm">
+      <h5>Quản lý</h5>
+      <div class="d-grid gap-2">
+        <a href="{% url 'events:qr' event.pk %}" class="btn btn-success"><i class="bi bi-qr-code"></i> Mã QR điểm danh</a>
+        <a href="{% url 'events:update' event.pk %}" class="btn btn-outline-warning">Sửa sự kiện</a>
+        <a href="{% url 'events:delete' event.pk %}" class="btn btn-outline-danger">Xóa sự kiện</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if can_manage %}
+<h4 class="mt-4">Danh sách tham dự
+  <small class="text-muted fs-6">({{ event.checked_in_count }}/{{ event.registered_count }} đã điểm danh)</small>
+</h4>
+<div class="table-responsive bg-white rounded shadow-sm">
+  <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light">
+      <tr><th>Họ tên</th><th>MSSV</th><th>Đăng ký lúc</th><th>Điểm danh</th><th class="text-end">Thao tác</th></tr>
+    </thead>
+    <tbody>
+    {% for r in registrations %}
+      <tr>
+        <td>{{ r.user }}</td>
+        <td>{{ r.user.mssv }}</td>
+        <td>{{ r.registered_at|date:"H:i d/m/Y" }}</td>
+        <td>{% if r.checked_in_at %}<span class="badge bg-success">{{ r.checked_in_at|date:"H:i d/m" }}</span>{% else %}<span class="badge bg-secondary">Chưa</span>{% endif %}</td>
+        <td class="text-end">
+          <form method="post" action="{% url 'events:toggle_attendance' event.pk r.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-sm {% if r.checked_in_at %}btn-outline-secondary{% else %}btn-outline-success{% endif %}">
+              {% if r.checked_in_at %}Bỏ điểm danh{% else %}Điểm danh tay{% endif %}
+            </button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center text-muted py-4">Chưa có ai đăng ký.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}</title>
+</head>
+<body>
+
+</body>
+</html>

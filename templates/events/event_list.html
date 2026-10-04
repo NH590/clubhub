@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Sự kiện - ClubHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Sự kiện</h2>
+  {% if can_manage %}
+    <a class="btn btn-primary btn-sm" href="{% url 'events:create' %}">+ Tạo sự kiện</a>
+  {% endif %}
+</div>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link {% if tab == 'upcoming' %}active{% endif %}" href="?tab=upcoming">Sắp diễn ra</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'past' %}active{% endif %}" href="?tab=past">Đã kết thúc</a></li>
+</ul>
+
+<div class="row g-3">
+{% for e in events %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm border-0">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          {% if e.status == "ongoing" %}<span class="badge bg-success">Đang diễn ra</span>
+          {% elif e.status == "upcoming" %}<span class="badge bg-primary">Sắp diễn ra</span>
+          {% else %}<span class="badge bg-secondary">Đã kết thúc</span>{% endif %}
+          {% if e.id in my_ids %}<span class="badge bg-info text-dark">Đã đăng ký</span>{% endif %}
+        </div>
+        <h5 class="card-title"><a href="{% url 'events:detail' e.pk %}" class="text-decoration-none">{{ e.title }}</a></h5>
+        <p class="small text-muted mb-1"><i class="bi bi-clock"></i> {{ e.start_time|date:"H:i d/m/Y" }}</p>
+        <p class="small text-muted mb-1"><i class="bi bi-geo-alt"></i> {{ e.location }}</p>
+        <p class="small text-muted mb-0"><i class="bi bi-people"></i> {{ e.n_registered }}{% if e.capacity %}/{{ e.capacity }}{% endif %} người đăng ký</p>
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <p class="text-muted">Chưa có sự kiện nào.</p>
+{% endfor %}
+</div>
+{% endblock %}
