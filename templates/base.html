@@ -36,6 +36,10 @@
           <a class="nav-link {% if ns == 'finance' %}active fw-semibold{% endif %}"
              href="{% url 'finance:list' %}"><i class="bi bi-cash-coin"></i> Quỹ</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if ns == 'tasks' %}active fw-semibold{% endif %}"
+             href="{% url 'tasks:board' %}"><i class="bi bi-kanban"></i> Công việc</a>
+        </li>
         {% if user.is_superuser %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Quản trị</a>
