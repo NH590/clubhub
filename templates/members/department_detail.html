@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ object }} - ClubHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Ban: {{ object }}</h2>
+  <div>
+    {% if user.is_superuser or user.is_board_or_above %}
+      <a href="{% url 'members:department_update' object.pk %}" class="btn btn-warning btn-sm">Sửa</a>
+      <a href="{% url 'members:department_delete' object.pk %}" class="btn btn-danger btn-sm">Xóa</a>
+    {% endif %}
+    <a href="{% url 'members:departments' %}" class="btn btn-outline-secondary btn-sm">← Danh sách ban</a>
+  </div>
+</div>
+
+<div class="table-responsive bg-white rounded shadow-sm">
+  <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light">
+      <tr><th>Họ tên</th><th>MSSV</th><th>Khoa</th><th>Chức vụ</th><th>Tham gia</th></tr>
+    </thead>
+    <tbody>
+      {% for m in memberships %}
+      <tr>
+        <td>{{ m.user }}</td>
+        <td>{{ m.user.mssv }}</td>
+        <td>{{ m.user.faculty }}</td>
+        <td>{{ m.get_position_display }}</td>
+        <td>{{ m.joined_at|date:"d/m/Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted py-4">Ban chưa có thành viên.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
