@@ -18,6 +18,7 @@ SYSTEM = (
 # Model dự phòng khi model chính quá tải / không dùng được
 FALLBACK_MODELS = ["gemini-flash-latest", "gemini-flash-lite-latest"]
 RETRY_CODES = ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED", "500", "INTERNAL")
+MAX_SECONDS = 45  # tổng thời gian tối đa cho 1 lần gọi AI (server cắt ở 120s)
 
 
 class AIError(Exception):
@@ -44,12 +45,18 @@ def ask(prompt, system=SYSTEM):
     except ImportError:
         raise AIError("Chưa cài thư viện google-genai (pip install google-genai).")
 
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    client = genai.Client(
+        api_key=os.getenv("GEMINI_API_KEY"),
+        http_options=types.HttpOptions(timeout=20000),  # mỗi lần gọi tối đa 20 giây
+    )
     config = types.GenerateContentConfig(system_instruction=system, temperature=0.6)
 
+    started = time.monotonic()
     errors = []
     for model in _model_list():
-        for attempt in range(3):  # thử lại tối đa 3 lần nếu quá tải
+        for attempt in range(2):  # mỗi model thử tối đa 2 lần
+            if time.monotonic() - started > MAX_SECONDS:
+                break
             try:
                 resp = client.models.generate_content(model=model, contents=prompt, config=config)
                 text = (resp.text or "").strip()
@@ -59,17 +66,21 @@ def ask(prompt, system=SYSTEM):
             except Exception as e:
                 msg = str(e)
                 errors.append(f"{model}: {msg[:120]}")
-                if any(code in msg for code in RETRY_CODES) and attempt < 2:
-                    time.sleep(2 * (attempt + 1))  # đợi 2s rồi 4s
+                if any(code in msg for code in RETRY_CODES) and attempt == 0:
+                    time.sleep(2)
                     continue
-                break  # lỗi khác (vd 404) -> chuyển sang model tiếp theo
+                break  # lỗi khác -> chuyển sang model tiếp theo
+        if time.monotonic() - started > MAX_SECONDS:
+            break
 
     joined = " | ".join(errors)
+    if "429" in joined or "RESOURCE_EXHAUSTED" in joined:
+        raise AIError("Đã hết lượt miễn phí của Gemini trong lúc này. Hãy đợi khoảng 1 phút rồi thử lại.")
     if "503" in joined or "UNAVAILABLE" in joined:
         raise AIError("Máy chủ Gemini đang quá tải, bạn thử lại sau ít phút nhé.")
-    if "429" in joined or "RESOURCE_EXHAUSTED" in joined:
-        raise AIError("Đã hết lượt miễn phí của Gemini trong lúc này, hãy thử lại sau.")
-    raise AIError(f"Không gọi được AI. Chi tiết: {errors[-1] if errors else 'không có phản hồi'}")
+    if not errors:
+        raise AIError("AI phản hồi quá chậm, bạn thử lại sau nhé.")
+    raise AIError(f"Không gọi được AI. Chi tiết: {errors[-1]}")
 
 
 # ---------- 1. Viết nháp thông báo ----------
