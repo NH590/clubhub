@@ -8,3 +8,7 @@ media/*
 !media/.gitkeep
 .idea/
 *.sqlite3
+neon.txt
+data.json
+neon.txt
+data.json
