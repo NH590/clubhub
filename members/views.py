@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -12,6 +13,9 @@ from accounts.mixins import RoleRequiredMixin
 from comms.models import Announcement, Notification
 from .forms import DepartmentForm, MembershipForm
 from .models import Department, Membership
+from .profile_forms import ProfileForm
+
+CONTACT_VIEWERS = ("admin", "board")  # được xem SĐT/email của người khác
 
 
 # ---------- DANH SÁCH ----------
@@ -149,6 +153,12 @@ class MembershipDeleteView(RoleRequiredMixin, SuccessMessageMixin, DeleteView):
 
 
 # ---------- HỒ SƠ THÀNH VIÊN ----------
+def can_see_contact(viewer, person):
+    """Chính chủ, Admin và Ban điều hành mới thấy SĐT/email."""
+    return (viewer == person or viewer.is_superuser
+            or getattr(viewer, "role", None) in CONTACT_VIEWERS)
+
+
 @login_required
 def member_profile(request, pk):
     """Xem thông tin cá nhân của một thành viên."""
@@ -160,6 +170,7 @@ def member_profile(request, pk):
         "person": person,
         "memberships": memberships,
         "is_me": person == request.user,
+        "can_see_contact": can_see_contact(request.user, person),
     })
 
 
@@ -167,3 +178,24 @@ def member_profile(request, pk):
 def my_profile(request):
     """Nút 'Hồ sơ của tôi' → mở hồ sơ của chính mình."""
     return redirect("members:profile", pk=request.user.pk)
+
+
+@login_required
+def profile_edit(request):
+    """Thành viên tự sửa hồ sơ của chính mình (chỉ sửa được request.user)."""
+    form = ProfileForm(request.POST or None, request.FILES or None, instance=request.user)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Đã cập nhật hồ sơ.")
+        return redirect("members:me")
+    return render(request, "members/profile_form.html", {
+        "form": form, "title": "Sửa hồ sơ của tôi",
+    })
+
+
+class MyPasswordChangeView(LoginRequiredMixin, SuccessMessageMixin, PasswordChangeView):
+    """Đổi mật khẩu bằng view có sẵn của Django (phải nhập mật khẩu cũ)."""
+    template_name = "members/profile_form.html"
+    success_url = reverse_lazy("members:me")
+    success_message = "Đã đổi mật khẩu."
+    extra_context = {"title": "Đổi mật khẩu"}

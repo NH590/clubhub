@@ -1,8 +1,15 @@
 {% extends "base.html" %}
+{% block title %}Hồ sơ – {{ person }}{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0"><i class="bi bi-person-vcard"></i> Hồ sơ thành viên</h3>
-  <a href="{% url 'members:list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Danh sách</a>
+  <div class="d-flex gap-2">
+    {% if is_me %}
+      <a href="{% url 'members:profile_edit' %}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i> Sửa hồ sơ</a>
+      <a href="{% url 'members:password_change' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-key"></i> Đổi mật khẩu</a>
+    {% endif %}
+    <a href="{% url 'members:list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Danh sách</a>
+  </div>
 </div>
 
 <div class="row g-4">
@@ -31,8 +38,15 @@
         <tr><th class="text-muted" style="width:35%">Họ và tên</th><td>{{ person }}</td></tr>
         <tr><th class="text-muted">MSSV</th><td>{{ person.mssv|default:"—" }}</td></tr>
         <tr><th class="text-muted">Khoa</th><td>{{ person.faculty|default:"—" }}</td></tr>
-        <tr><th class="text-muted">Email</th><td>{% if person.email %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% else %}—{% endif %}</td></tr>
-        <tr><th class="text-muted">Số điện thoại</th><td>{{ person.phone|default:"—" }}</td></tr>
+        <tr><th class="text-muted">Email</th><td>
+          {% if can_see_contact %}
+            {% if person.email %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% else %}—{% endif %}
+          {% else %}<span class="text-muted" title="Chỉ Admin, Ban điều hành và chính chủ được xem">●●●●●● <i class="bi bi-lock"></i></span>{% endif %}
+        </td></tr>
+        <tr><th class="text-muted">Số điện thoại</th><td>
+          {% if can_see_contact %}{{ person.phone|default:"—" }}
+          {% else %}<span class="text-muted" title="Chỉ Admin, Ban điều hành và chính chủ được xem">●●●●●● <i class="bi bi-lock"></i></span>{% endif %}
+        </td></tr>
         <tr><th class="text-muted">Ngày tạo tài khoản</th><td>{{ person.date_joined|date:"d/m/Y" }}</td></tr>
       </table>
     </div>

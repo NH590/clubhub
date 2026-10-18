@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
@@ -95,6 +95,10 @@ def change_status(request, pk, status):
     if not (is_manager(request.user) or task.assignee_id == request.user.id):
         raise PermissionDenied
     task.set_status(status)
+    # Kéo thả Kanban gửi bằng JavaScript (fetch) → trả JSON, không chuyển trang
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "status": task.status,
+                             "label": task.get_status_display()})
     messages.success(request, f"“{task.title}” → {task.get_status_display()}")
     back = request.POST.get("query", "")
     url = reverse_lazy("tasks:board")

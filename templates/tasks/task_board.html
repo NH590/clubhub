@@ -7,6 +7,7 @@
     <a class="btn btn-primary btn-sm" href="{% url 'tasks:create' %}">+ Tạo công việc</a>
   {% endif %}
 </div>
+<p class="small text-muted mb-2"><i class="bi bi-arrows-move"></i> Kéo thả thẻ sang cột khác để đổi trạng thái (trên điện thoại dùng các nút bên dưới thẻ).</p>
 
 <form method="get" class="row g-2 mb-3 align-items-center">
   <div class="col-md-3">
@@ -37,14 +38,16 @@
 <div class="row g-3">
 {% for col in columns %}
   <div class="col-lg-4">
-    <div class="rounded p-2 h-100 {% if col.value == 'todo' %}bg-secondary-subtle{% elif col.value == 'doing' %}bg-warning-subtle{% else %}bg-success-subtle{% endif %}">
+    <div class="rounded p-2 h-100 kanban-col {% if col.value == 'todo' %}bg-secondary-subtle{% elif col.value == 'doing' %}bg-warning-subtle{% else %}bg-success-subtle{% endif %}" data-status="{{ col.value }}">
       <h6 class="px-2 pt-1 d-flex justify-content-between">
         <span>{{ col.label }}</span>
-        <span class="badge bg-light text-dark">{{ col.tasks|length }}</span>
+        <span class="badge bg-light text-dark col-count">{{ col.tasks|length }}</span>
       </h6>
 
       {% for t in col.tasks %}
-      <div class="card border-0 shadow-sm mb-2">
+      <div class="card border-0 shadow-sm mb-2 kanban-card"
+           {% if can_manage or t.assignee_id == user.id %}draggable="true"
+           data-url="{% url 'tasks:change_status' t.pk 'todo' %}"{% endif %}>
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <span class="fw-semibold">{{ t.title }}</span>
@@ -90,10 +93,55 @@
         </div>
       </div>
       {% empty %}
-        <p class="small text-muted px-2">Không có công việc.</p>
+        <p class="small text-muted px-2 empty-note">Không có công việc.</p>
       {% endfor %}
     </div>
   </div>
 {% endfor %}
 </div>
+
+<!-- ===== KÉO THẢ KANBAN ===== -->
+<div class="d-none">{% csrf_token %}</div>
+<style>
+  .kanban-card[draggable="true"] { cursor: grab; }
+  .kanban-card.dragging { opacity: .5; }
+  .kanban-col.drop-target { outline: 3px dashed #0d6efd; outline-offset: -3px; }
+</style>
+<script>
+(function () {
+  const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  let dragged = null;
+
+  document.querySelectorAll(".kanban-card[draggable=true]").forEach(card => {
+    card.addEventListener("dragstart", e => {
+      dragged = card;
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+    });
+    card.addEventListener("dragend", () => { card.classList.remove("dragging"); dragged = null; });
+  });
+
+  document.querySelectorAll(".kanban-col").forEach(col => {
+    col.addEventListener("dragover", e => { if (dragged) { e.preventDefault(); col.classList.add("drop-target"); } });
+    col.addEventListener("dragleave", e => { if (!col.contains(e.relatedTarget)) col.classList.remove("drop-target"); });
+    col.addEventListener("drop", async e => {
+      e.preventDefault();
+      col.classList.remove("drop-target");
+      if (!dragged || dragged.closest(".kanban-col") === col) return;
+      // URL mẫu .../status/todo/ → thay "todo" bằng trạng thái của cột được thả vào
+      const url = dragged.dataset.url.replace(/\/todo\/$/, "/" + col.dataset.status + "/");
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "X-CSRFToken": csrf, "X-Requested-With": "XMLHttpRequest" },
+        });
+        if (!res.ok) throw new Error(res.status);
+      } catch (err) {
+        console.log("Không đổi được trạng thái:", err);
+      }
+      location.reload();  // tải lại để cập nhật số đếm, màu quá hạn, nút bấm
+    });
+  });
+})();
+</script>
 {% endblock %}

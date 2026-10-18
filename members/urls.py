@@ -13,6 +13,8 @@ urlpatterns = [
     # Hồ sơ thành viên
     path("profile/<int:pk>/", views.member_profile, name="profile"),
     path("me/", views.my_profile, name="me"),
+    path("me/edit/", views.profile_edit, name="profile_edit"),
+    path("me/password/", views.MyPasswordChangeView.as_view(), name="password_change"),
 
     path("departments/", views.department_list, name="departments"),
     path("departments/add/", views.DepartmentCreateView.as_view(), name="department_create"),
