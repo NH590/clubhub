@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    .profile-link:hover { text-decoration: underline !important; }  /* MỚI */
+    .profile-link:hover { text-decoration: underline !important; }
   </style>
 </head>
 <body class="bg-light">
@@ -44,7 +44,7 @@
              href="{% url 'tasks:board' %}"><i class="bi bi-kanban"></i> Công việc</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if ns == 'comms' %}active fw-semibold{% endif %}"
+          <a class="nav-link {% if ns == 'comms' and url_name != 'notifications' %}active fw-semibold{% endif %}"
              href="{% url 'comms:announcements' %}"><i class="bi bi-megaphone"></i> Truyền thông</a>
         </li>
         {% if user.is_superuser or user.role in "admin board head" %}
@@ -64,7 +64,19 @@
 
       <div class="ms-auto d-flex align-items-center gap-2">
         {% if user.is_authenticated %}
-          <!-- MỚI: bấm vào tên để mở "Hồ sơ của tôi" -->
+          {% if show_bell %}
+          <!-- Chuông thông báo cho Admin -->
+          <a href="{% url 'comms:notifications' %}" class="btn btn-light btn-sm position-relative me-1"
+             title="Thông báo hệ thống">
+            <i class="bi bi-bell"></i>
+            {% if unread_notifications %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_notifications }}
+              </span>
+            {% endif %}
+          </a>
+          {% endif %}
+          <!-- Bấm vào tên để mở "Hồ sơ của tôi" -->
           <a href="{% url 'members:me' %}" class="text-white small text-decoration-none profile-link"
              title="Hồ sơ của tôi">
             <i class="bi bi-person-circle"></i> {{ user }}
@@ -92,7 +104,7 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- MỚI: hộp thông báo tự tắt sau 5 giây -->
+<!-- Hộp thông báo tự tắt sau 5 giây -->
 <script>
   setTimeout(() => {
     document.querySelectorAll("main > .alert-dismissible").forEach(a =>

@@ -75,7 +75,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "comms.context_processors.notifications",  # ← THÊM: số thông báo chưa đọc trên chuông
+                "comms.context_processors.notifications",  # so thong bao chua doc tren chuong
             ],
         },
     },

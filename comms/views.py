@@ -12,7 +12,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from accounts.mixins import RoleRequiredMixin
 from ai_support import services as ai
 from .forms import AnnouncementForm, MeetingMinuteForm
-from .models import Announcement, MeetingMinute
+from .models import Announcement, MeetingMinute, Notification
 
 MANAGERS = ("admin", "board", "head")
 DRAFT_KEY = "ai_announcement_draft"
@@ -162,3 +162,14 @@ def summarize_minute(request, pk):
     except ai.AIError as e:
         messages.error(request, str(e))
     return redirect("comms:minute_detail", pk=pk)
+
+
+# ================= CHUÔNG THÔNG BÁO (ADMIN) =================
+@login_required
+def notification_list(request):
+    """Trang thông báo hệ thống của Admin. Mở trang = đánh dấu đã đọc."""
+    if not (request.user.is_superuser or getattr(request.user, "role", None) == "admin"):
+        raise PermissionDenied
+    items = list(Notification.objects.filter(recipient=request.user)[:50])
+    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return render(request, "comms/notifications.html", {"items": items})

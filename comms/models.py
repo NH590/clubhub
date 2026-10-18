@@ -49,6 +49,7 @@ class MeetingMinute(models.Model):
     def __str__(self):
         return f"{self.title} ({self.date:%d/%m/%Y})"
 
+
 class Notification(models.Model):
     """Thông báo hệ thống gửi riêng cho từng người (chuông trên menu)."""
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="Người nhận",

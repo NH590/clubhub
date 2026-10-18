@@ -5,11 +5,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 
 from accounts.mixins import RoleRequiredMixin
-from comms.models import Announcement
+from comms.models import Announcement, Notification
 from .forms import DepartmentForm, MembershipForm
 from .models import Department, Membership
 
@@ -103,7 +103,7 @@ class MembershipCreateView(RoleRequiredMixin, CreateView):
         dept = m.department.name
         pos = m.get_position_display() if hasattr(m, "get_position_display") else m.position
 
-        # 2. Tự đăng thông báo chào mừng vào Truyền thông, gửi riêng cho ban đó
+        # 2. Đăng thông báo chào mừng vào Truyền thông (gửi riêng cho ban đó)
         Announcement.objects.create(
             title=f"Chào mừng {name} gia nhập ban {dept}",
             content=(f"Ban {dept} chào đón thành viên mới {name}"
@@ -113,7 +113,20 @@ class MembershipCreateView(RoleRequiredMixin, CreateView):
             created_by=self.request.user,
         )
 
-        # 3. Hiện hộp thông báo xanh trên màn hình
+        # 3. Gửi thông báo cho tất cả Admin (chuông trên menu)
+        User = get_user_model()
+        admins = User.objects.filter(Q(role="admin") | Q(is_superuser=True), is_active=True)
+        adder = self.request.user.get_full_name() or self.request.user.username
+        Notification.objects.bulk_create([
+            Notification(
+                recipient=a,
+                message=f"{adder} vừa thêm {name} vào ban {dept}.",
+                link=reverse("members:profile", args=[m.user.pk]),
+            )
+            for a in admins
+        ])
+
+        # 4. Hộp thông báo xanh trên màn hình
         messages.success(self.request,
                          f"Đã thêm {name} vào ban {dept} và đăng thông báo chào mừng.")
         return response

@@ -17,4 +17,7 @@ urlpatterns = [
     path("minutes/<int:pk>/edit/", views.MinuteUpdateView.as_view(), name="minute_update"),
     path("minutes/<int:pk>/delete/", views.MinuteDeleteView.as_view(), name="minute_delete"),
     path("minutes/<int:pk>/summarize/", views.summarize_minute, name="minute_summarize"),
+
+    # Chuông thông báo cho Admin
+    path("notifications/", views.notification_list, name="notifications"),
 ]
