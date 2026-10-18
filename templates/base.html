@@ -8,11 +8,14 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
     .profile-link:hover { text-decoration: underline !important; }
+    /* Menu: chữ không xuống dòng, các mục sát nhau hơn */
+    .navbar .nav-link { white-space: nowrap; padding-left: .5rem !important; padding-right: .5rem !important; }
+    .navbar .btn, .profile-link { white-space: nowrap; }
   </style>
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-expand-xl navbar-dark bg-primary mb-4">
-  <div class="container">
+  <div class="container-fluid px-xl-5">
     <a class="navbar-brand fw-bold" href="{% url 'home' %}"><i class="bi bi-people-fill"></i> ClubHub</a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
