@@ -40,10 +40,23 @@
     <tbody>
       {% for m in memberships %}
       <tr>
-        <td>{{ m.user }}</td>
+        <!-- MỚI: bấm tên để xem hồ sơ -->
+        <td>
+          <a href="{% url 'members:profile' m.user.pk %}" class="text-decoration-none d-inline-flex align-items-center gap-2"
+             title="Xem hồ sơ">
+            {% if m.user.avatar %}
+              <img src="{{ m.user.avatar.url }}" alt="" class="rounded-circle"
+                   style="width:28px;height:28px;object-fit:cover;">
+            {% else %}
+              <i class="bi bi-person-circle text-secondary fs-5"></i>
+            {% endif %}
+            <span class="fw-semibold">{{ m.user }}</span>
+          </a>
+        </td>
         <td>{{ m.user.mssv }}</td>
         <td>{{ m.user.faculty }}</td>
-        <td>{{ m.department }}</td>
+        <!-- MỚI: bấm tên ban để xem chi tiết ban -->
+        <td><a href="{% url 'members:department_detail' m.department.pk %}" class="text-decoration-none">{{ m.department }}</a></td>
         <td>{{ m.get_position_display }}</td>
         <td>{{ m.joined_at|date:"d/m/Y" }}</td>
         {% if user.is_superuser or user.is_board_or_above %}

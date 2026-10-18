@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0"><i class="bi bi-person-vcard"></i> Hồ sơ thành viên</h3>
+  <a href="{% url 'members:list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Danh sách</a>
+</div>
+
+<div class="row g-4">
+  <!-- Cột trái: ảnh + tên + vai trò -->
+  <div class="col-md-4">
+    <div class="bg-white p-4 rounded shadow-sm text-center h-100">
+      {% if person.avatar %}
+        <img src="{{ person.avatar.url }}" alt="{{ person }}" class="rounded-circle mb-3"
+             style="width:140px;height:140px;object-fit:cover;">
+      {% else %}
+        <i class="bi bi-person-circle text-secondary" style="font-size:140px;line-height:1;"></i>
+      {% endif %}
+      <h4 class="mt-2 mb-1">{{ person }}</h4>
+      <p class="text-muted mb-2">@{{ person.username }}</p>
+      <span class="badge bg-primary">{{ person.get_role_display }}</span>
+      {% if not person.is_active %}<span class="badge bg-secondary">Đã ngừng hoạt động</span>{% endif %}
+      {% if is_me %}<p class="small text-success mt-3 mb-0"><i class="bi bi-check-circle"></i> Đây là hồ sơ của bạn</p>{% endif %}
+    </div>
+  </div>
+
+  <!-- Cột phải: thông tin + ban -->
+  <div class="col-md-8">
+    <div class="bg-white p-4 rounded shadow-sm mb-4">
+      <h5 class="mb-3"><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
+      <table class="table table-borderless mb-0">
+        <tr><th class="text-muted" style="width:35%">Họ và tên</th><td>{{ person }}</td></tr>
+        <tr><th class="text-muted">MSSV</th><td>{{ person.mssv|default:"—" }}</td></tr>
+        <tr><th class="text-muted">Khoa</th><td>{{ person.faculty|default:"—" }}</td></tr>
+        <tr><th class="text-muted">Email</th><td>{% if person.email %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% else %}—{% endif %}</td></tr>
+        <tr><th class="text-muted">Số điện thoại</th><td>{{ person.phone|default:"—" }}</td></tr>
+        <tr><th class="text-muted">Ngày tạo tài khoản</th><td>{{ person.date_joined|date:"d/m/Y" }}</td></tr>
+      </table>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow-sm">
+      <h5 class="mb-3"><i class="bi bi-diagram-3"></i> Các ban đang tham gia</h5>
+      {% if memberships %}
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light"><tr><th>Ban</th><th>Chức vụ</th><th>Ngày tham gia</th></tr></thead>
+          <tbody>
+          {% for m in memberships %}
+            <tr>
+              <td><a href="{% url 'members:department_detail' m.department.pk %}">{{ m.department }}</a></td>
+              <td>{{ m.get_position_display|default:m.position|default:"—" }}</td>
+              <td>{{ m.joined_at|date:"d/m/Y" }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted mb-0">Chưa tham gia ban nào.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
