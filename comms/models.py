@@ -48,3 +48,20 @@ class MeetingMinute(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.date:%d/%m/%Y})"
+
+class Notification(models.Model):
+    """Thông báo hệ thống gửi riêng cho từng người (chuông trên menu)."""
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="Người nhận",
+                                  on_delete=models.CASCADE, related_name="notifications")
+    message = models.CharField("Nội dung", max_length=255)
+    link = models.CharField("Đường dẫn", max_length=255, blank=True)
+    is_read = models.BooleanField("Đã đọc", default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Thông báo hệ thống"
+        verbose_name_plural = "Thông báo hệ thống"
+
+    def __str__(self):
+        return f"{self.recipient}: {self.message}"
